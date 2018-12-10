@@ -1,0 +1,41 @@
+---
+# users:
+#   - username: jkowal
+#     group: users
+#     groups: ["wheel", "docker"]
+#     append: yes
+#     shell: /bin/zsh
+#     password: xxx (a hashed password)
+#     name: Jan Kowal
+#     uid: 1000
+#     home: /home/jkowal
+#     home_create: yes
+#     home_mode: "0750"
+#     generate_ssh_key: yes
+#     ssh_key_type: ecdsa
+#     ssh_key_bits: 256
+#     ssh_key_file: /home/test/.ssh/id_ecdsa
+#     update_password: always
+#     system: no
+
+# list of users to create or update
+users: []
+
+# default shell path
+users_default_shell: /bin/bash
+
+# list of users to remove
+users_deleted: []
+# users_deleted:
+#   - username: jkowal
+#     remove: yes
+#     force: yes
+
+# default list of user's secondary groups
+users_groups: []
+# users_groups:
+#   - name: docker
+#     gid: 3333
+
+# default permissions on user's home directory
+users_home_mode: "0755"

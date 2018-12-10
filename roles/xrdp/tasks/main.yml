@@ -1,0 +1,66 @@
+---
+- name: install epel repository
+  yum:
+    name: epel-release
+    state: present
+  tags: ["gui", "installation"]
+
+- name: install desktop environment
+  yum:
+    name: "{{ xrdp_desktop }}"
+    state: present
+  when: xrdp_install_gui
+  tags: ["gui", "installation"]
+
+- name: install xrdp
+  yum:
+    name: xrdp
+    state: present
+  tags: ["gui", "installation"]
+
+- name: install tigerVNC server
+  yum:
+    name: tigervnc-server
+    state: present
+  tag: ["gui", "installation"]
+
+- name: start xrdp
+  service:
+    name: xrdp
+    state: started
+    enabled: true
+
+- name: global xsession file
+  template:
+    src: xsession.j2
+    dest: /etc/skel/.xsession
+  notify: restart xrdp
+  tags: ["gui", "configuration"]
+
+- name: upload xrdp.ini
+  copy:
+    src: xrdp.ini
+    dest: /etc/xrdp/xrdp.ini
+  notify: restart xrdp
+  tags: ["gui", "configuration"]
+
+- name: upload xrdp_keyboard.ini
+  copy:
+    src: xrdp_keyboard.ini
+    dest: /etc/xrdp/xrdp_keyboard.ini
+  notify: restart xrdp
+  tags: ["gui", "configuration"]
+
+- name: upload sesman.ini
+  copy:
+    src: sesman.ini
+    dest: /etc/xrdp/sesman.ini
+  notify: restart xrdp
+  tags: ["gui", "configuration"]
+
+- name: upload allow-colord.pkla
+  copy:
+    src: allow-colord.pkla
+    dest: /etc/polkit-1/localauthority/50-local.d/allow-colord.pkla
+  notify: restart xrdp
+  tags: ["gui", "configuration"]

@@ -1,0 +1,5 @@
+---
+# Which Desktop Environment to install
+xrdp_desktop: "@kde-desktop"
+xrdp_xsession: "startkde"
+xrdp_install_gui: true

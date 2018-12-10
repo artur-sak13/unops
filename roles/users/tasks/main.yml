@@ -1,0 +1,61 @@
+---
+- name: Creating groups
+  group:
+    name: "{{ item.name }}"
+    gid: "{{ item.gid | default(omit) }}"
+  loop: "{{ users_groups }}"
+  tags: ["users", "groups", "configuration"]
+
+- name: Create user groups
+  group:
+    name: "{{ item.username }}"
+    gid: "{{ item.gid | default(item.uid) | default(omit) }}"
+  loop: "{{ users }}"
+  when: "'group' not in item"
+  tags: ["users", "configuration"]
+
+- name: Manage user accounts
+  user:
+    name: "{{ item.username }}"
+    group: "{{ item.group | default(item.username) }}"
+    groups: "{{ item.groups | join(',') if 'groups' in item else '' }}"
+    append: "{{ item.append | default(omit) }}"
+    shell: "{{ item.shell if item.shell is defined else users_default_shell }}"
+    password: "{{ item.password | default(omit) }}"
+    comment: "{{ item.name if item.name is defined else '' }}"
+    uid: "{{ item.uid | default(omit) }}"
+    home: "{{ item.home | default('/home/' + item.username)  }}"
+    create_home: "{{ item.home_create | default(omit) }}"
+    generate_ssh_key: "{{ item.generate_ssh_key | default(omit)  }}"
+    ssh_key_bits: "{{ item.ssh_key_bits | default(omit) }}"
+    ssh_key_type: "{{ item.ssh_key_type | default(omit) }}"
+    ssh_key_file: "{{ item.ssh_key_file | default(omit) }}"
+    update_password: "{{ item.update_password | default(omit) }}"
+    system: "{{ item.system | default(omit) }}"
+  loop: "{{ users }}"
+  tags: ["users", "configuration"]
+
+- name: Set users's home permissions
+  file:
+    dest: "{{ item.home | default('/home/' + item.username) }}"
+    owner: "{{ item.username }}"
+    group: "{{ item.group | default(item.username) }}"
+    mode: "{{ item.home_mode if item.home_mode is defined else users_home_mode }}"
+  when: item.home_create is not defined or item.home_create
+  loop: "{{ users }}"
+
+- name: Delete users
+  user:
+    name: "{{ item.username }}"
+    state: absent
+    remove: "{{ item.remove | default(omit) }}"
+    force: "{{ item.force | default(omit) }}"
+  loop: "{{ users_deleted }}"
+  tags: ["users", "configuration"]
+
+- name: Delete user groups
+  group:
+    name: "{{ item.username }}"
+    state: absent
+  loop: "{{ users_deleted }}"
+  tags: ["users", "configuration"]

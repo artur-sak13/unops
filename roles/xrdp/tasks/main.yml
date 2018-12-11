@@ -37,6 +37,16 @@
   notify: restart xrdp
   tags: ["gui", "configuration"]
 
+- name: add xession to existing users' home dirs
+  template:
+    src: xsession.j2
+    dest: "/home/{{ item.username }}"
+    owner: "{{ item.username }}"
+    group: "{{ item.group | default(item.username)}}"
+    mode: "0755"
+  loop: "{{ xrdp_users }}"
+  tags: ["gui", "users"]
+
 - name: upload xrdp.ini
   copy:
     src: xrdp.ini

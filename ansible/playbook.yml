@@ -1,0 +1,13 @@
+---
+- import_playbook: pre.yml
+
+- name: build image
+  hosts: all
+  become: yes
+  roles:
+  - role: kernel
+  - role: common
+  - role: docker
+  - role: providers
+  - { role: xrdp, tags: gui }
+  - role: packer-cleanup

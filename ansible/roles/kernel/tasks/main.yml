@@ -1,0 +1,57 @@
+---
+- name: Add EPELRepo
+  yum:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    state: present
+
+- name: Add ELRepo
+  yum_repository:
+    name: elrepo
+    description: "ELRepo.org Community Enterprise Linux Repository - el7"
+    baseurl: http://elrepo.org/linux/elrepo/el7/$basearch/
+    mirrorlist: http://mirrors.elrepo.org/mirrors-elrepo.el7
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+
+- name: Add ELRepo Kernel
+  yum_repository:
+    name: elrepo-kernel
+    description: "ELRepo.org Community Enterprise Linux Kernel Repository - el7"
+    baseurl: http://elrepo.org/linux/kernel/el7/$basearch/
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+
+- name: Add ELRepo Kernel
+  yum_repository:
+    name: elrepo-extras
+    description: "ELRepo.org Community Enterprise Linux Extras Repository - el7"
+    baseurl: http://elrepo.org/linux/extras/el7/$basearch/
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+
+- name: Install New Kernel
+  yum:
+    name: "{{ packages }}"
+    state: installed
+    update_cache: true
+  vars:
+    packages:
+      - kernel-ml
+      - kernel-ml-devel
+      - kernel-ml-headers
+  notify:
+    - Set latest kernel as default
+    - Rebuild Grub Config
+
+- name: Reboot server
+  reboot:
+    reboot_timeout: 3600
+
+- name: Upgrade all packages
+  yum:
+    name: '*'
+    update_cache: true
+    update_only: true

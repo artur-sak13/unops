@@ -1,6 +1,0 @@
----
-- hosts: centos
-  become: true
-  roles:
-    - { role: users, tags: users }
-    - { role: xrdp, tags: gui }

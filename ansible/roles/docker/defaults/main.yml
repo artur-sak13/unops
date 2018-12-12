@@ -1,0 +1,2 @@
+---
+docker_logging_max_size: 100m

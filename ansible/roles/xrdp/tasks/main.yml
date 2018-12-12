@@ -14,15 +14,19 @@
 
 - name: install xrdp
   yum:
-    name: xrdp
+    name: "{{ packages }}"
     state: present
+  vars:
+    packages:
+      - xrdp
+      - xrdp-devel
   tags: ["gui", "installation"]
 
 - name: install tigerVNC server
   yum:
     name: tigervnc-server
     state: present
-  tag: ["gui", "installation"]
+  tags: ["gui", "installation"]
 
 - name: start xrdp
   service:
@@ -30,21 +34,39 @@
     state: started
     enabled: true
 
+- name: open firewall port
+  firewalld:
+    zone: public
+    port: 3386/tcp
+    permanent: true
+    immediate: true
+    state: enabled
+  tags: ["gui", "configuration"]
+
+- name: change selinux context
+  shell: |
+    chcon --type=bin_t /usr/sbin/xrdp
+    chcon --type=bin_t /usr/sbin/xrdp-sesman
+  when: xrdp_install_gui
+  tags: ["gui", "configuration"]
+
 - name: global xsession file
   template:
     src: xsession.j2
     dest: /etc/skel/.xsession
+    mode: "0755"
   notify: restart xrdp
   tags: ["gui", "configuration"]
 
 - name: add xession to existing users' home dirs
   template:
     src: xsession.j2
-    dest: "/home/{{ item.username }}"
+    dest: "/home/{{ item.username }}/.xsession"
     owner: "{{ item.username }}"
     group: "{{ item.group | default(item.username)}}"
     mode: "0755"
   loop: "{{ xrdp_users }}"
+  when: xrdp_users|length!=0
   tags: ["gui", "users"]
 
 - name: upload xrdp.ini

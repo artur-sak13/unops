@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: Artur Sak
+  description: Packer Cleanup Role
+  company: Two Point Inc.
+
+  license: MIT
+  min_ansible_version: 2.4
+  platforms:
+    - name: CentOS
+      versions:
+        - all
+
+galaxy_tags:
+  - system
+  - server
+  - packer
+  - ami
+  - cleanup
+
+dependencies: []

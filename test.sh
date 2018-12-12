@@ -2,7 +2,7 @@
 set -e
 set -o pipefail
 
-mapfile -t dirs < <(find "${PWD}/roles" -maxdepth 1 -type d  ! -name "*roles*")
+mapfile -t dirs < <(find "${PWD}/ansible/roles" -maxdepth 1 -type d  ! -name "*roles*")
 
 for dir in "${dirs[@]}"; do
   base=$(basename "$dir")

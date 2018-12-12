@@ -1,0 +1,30 @@
+---
+- name: perform a yum update
+  yum:
+    name: '*'
+    update_cache: true
+    update_only: true
+  when: common_upgrade_base | bool
+
+- name: install baseline dependencies
+  yum:
+    name: "{{ common_rpms }}"
+    state: present
+
+- name: install extra rpms
+  yum:
+    name: "{{ common_extra_rpm }}"
+  when: common_extra_rpms|length != 0
+
+- name: Load br_netfilter kernel module
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: Set sys.net.bridge.bridge-nf-call-iptables
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    sysctl_set: true
+    state: present
+    reload: true

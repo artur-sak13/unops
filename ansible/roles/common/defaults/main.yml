@@ -1,0 +1,18 @@
+---
+common_upgrade_base: "{{ common.upgrade_base if common_upgrade_base_defined else False }}"
+common_rpms:
+  - yum-utils
+  - python2-pip
+  - python-requests
+  - ebtables
+  - socat
+  - ntp
+  - jq
+  - nfs-utils
+  - cloud-utils
+  - bind-utils
+  - git
+  - htop
+  - curl
+  - tree
+common_extra_rpms: []

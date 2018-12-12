@@ -1,0 +1,6 @@
+---
+- name: Set latest kernel as default
+  command: grub2-set-default 0
+
+- name: Rebuild Grub Config
+  command: grub2-mkconfig -o /boot/grub2/grub.cfg

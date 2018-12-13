@@ -10,10 +10,9 @@ galaxy_info:
     - name: CentOS
       versions:
         - all
-
-galaxy_tags:
-  - system
-  - server
-  - yum
+  galaxy_tags:
+    - system
+    - server
+    - yum
 
 dependencies: []

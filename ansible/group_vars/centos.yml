@@ -18,7 +18,7 @@
 #     system: no
 
 # list of users to create or update
-users: []
+users:[]
 
 # default shell path
 users_default_shell: /bin/bash
@@ -31,10 +31,12 @@ users_deleted: []
 #     force: yes
 
 # default list of user's secondary groups
-users_groups: []
+users_groups:
 # users_groups:
 #   - name: docker
 #     gid: 3333
 
 # default permissions on user's home directory
 users_home_mode: "0755"
+
+xrdp_users: []

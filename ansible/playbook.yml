@@ -7,6 +7,7 @@
   roles:
   - role: kernel
   - role: common
+  - { role: users, tags: users }
   - role: docker
   - role: providers
   - { role: xrdp, tags: gui }

@@ -10,12 +10,11 @@ galaxy_info:
     - name: CentOS
       versions:
         - all
-
-galaxy_tags:
-  - system
-  - server
-  - docker
-  - containers
-  - docker-compose
+  galaxy_tags:
+    - system
+    - server
+    - docker
+    - containers
+    - docker-compose
 
 dependencies: []

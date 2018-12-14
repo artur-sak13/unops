@@ -3,6 +3,12 @@
   gather_facts: false
   become: true
   post_tasks:
+    - name: force systemd to reread configs
+      systemd:
+        daemon_reload: true
+    - name: reboot server
+      reboot:
+        reboot_timeout: 3600
     - name: open xrdp firewall port
       firewalld:
         zone: public

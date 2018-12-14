@@ -7,8 +7,11 @@
   roles:
   - role: kernel
   - role: common
-  - { role: users, tags: users }
   - role: docker
   - role: providers
+  - { role: users, tags: users }
   - { role: xrdp, tags: gui }
   - role: packer-cleanup
+
+- import_playbook: post.yml
+

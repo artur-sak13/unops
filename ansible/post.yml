@@ -1,0 +1,12 @@
+---
+- hosts: all
+  gather_facts: false
+  become: true
+  post_tasks:
+    - name: open xrdp firewall port
+      firewalld:
+        zone: public
+        port: 3389/tcp
+        permanent: true
+        immediate: true
+        state: enabled

@@ -9,3 +9,5 @@
       state: latest
       update_cache: true
       update_only: true
+    register: result
+    until: result is succeeded

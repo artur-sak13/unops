@@ -4,16 +4,22 @@
     name: '*'
     update_cache: true
     update_only: true
+  register: result
+  until: result is succeeded
   when: common_upgrade_base | bool
 
 - name: install baseline dependencies
   yum:
     name: "{{ common_rpms }}"
     state: present
+  register: result
+  until: result is succeeded
 
 - name: install extra rpms
   yum:
     name: "{{ common_extra_rpm }}"
+  register: result
+  until: result is succeeded
   when: common_extra_rpms|length != 0
 
 - name: Load br_netfilter kernel module

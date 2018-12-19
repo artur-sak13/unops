@@ -3,6 +3,8 @@
   yum:
     name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     state: present
+  register: result
+  until: result is succeeded
 
 - name: Add ELRepo
   yum_repository:
@@ -13,6 +15,8 @@
     enabled: true
     gpgcheck: true
     gpgkey: https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+  register: result
+  until: result is succeeded
 
 - name: Add ELRepo Kernel
   yum_repository:
@@ -22,6 +26,8 @@
     enabled: true
     gpgcheck: true
     gpgkey: https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+  register: result
+  until: result is succeeded
 
 - name: Add ELRepo Kernel
   yum_repository:
@@ -31,6 +37,8 @@
     enabled: true
     gpgcheck: true
     gpgkey: https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+  register: result
+  until: result is succeeded
 
 - name: Install New Kernel
   yum:
@@ -45,6 +53,8 @@
   notify:
     - Set latest kernel as default
     - Rebuild Grub Config
+  register: result
+  until: result is succeeded
 
 - name: Reboot server
   reboot:
@@ -55,3 +65,5 @@
     name: '*'
     update_cache: true
     update_only: true
+  register: result
+  until: result is succeeded

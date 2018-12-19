@@ -3,13 +3,18 @@
   yum:
     name: epel-release
     state: present
+  register: result
+  until: result is succeeded
   tags: ["gui", "installation"]
+
 
 - name: install desktop environment
   yum:
     name: "{{ xrdp_desktop }}"
     state: present
   when: xrdp_install_gui
+  register: result
+  until: result is succeeded
   tags: ["gui", "installation"]
 
 - name: install xrdp
@@ -20,12 +25,16 @@
     packages:
       - xrdp
       - xrdp-devel
+  register: result
+  until: result is succeeded
   tags: ["gui", "installation"]
 
 - name: install tigerVNC server
   yum:
     name: tigervnc-server
     state: present
+  register: result
+  until: result is succeeded
   tags: ["gui", "installation"]
 
 - name: start xrdp
@@ -55,7 +64,7 @@
     src: xsession.j2
     dest: "/home/{{ item.username }}/.xsession"
     owner: "{{ item.username }}"
-    group: "{{ item.group | default(item.username)}}"
+    group: "{{ item.group | default(item.username) }}"
     mode: "0755"
   loop: "{{ xrdp_users }}"
   when: xrdp_users|length!=0

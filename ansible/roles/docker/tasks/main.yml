@@ -7,6 +7,8 @@
     packages:
       - device-mapper-persistent-data
       - lvm2
+  register: result
+  until: result is succeeded
 
 - name: Add Docker repo
   yum_repository:
@@ -15,19 +17,27 @@
     baseurl: https://download.docker.com/linux/centos/7/$basearch/stable/
     gpgkey: https://download.docker.com/linux/centos/gpg
     gpgcheck: true
+  register: result
+  until: result is succeeded
 
 - name: Install docker-py
   pip:
     name: docker-py
+  register: result
+  until: result is succeeded
 
 - name: Install docker-compose
   pip:
     name: docker-compose
+  register: result
+  until: result is succeeded
 
 - name: Install Docker-CE
   yum:
     name: docker-ce
     state: present
+  register: result
+  until: result is succeeded
 
 - name: Start Docker service
   service:

@@ -5,3 +5,5 @@
   loop:
     - https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
     - awscli
+  register: result
+  until: result is succeeded

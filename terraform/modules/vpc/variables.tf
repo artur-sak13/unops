@@ -15,3 +15,4 @@ variable "vpc_cidr_prefix" {
   description = "The IP prefix to the CIDR block assigned to the VPC"
   default     = "10.72"
 }
+

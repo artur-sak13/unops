@@ -7,10 +7,10 @@ provider "aws" {
 }
 
 module "vpc" {
-  source          = "./modules/vpc"
-  name            = "${var.name}"
-  region          = "${var.region}"
-  vpc_cidr_prefix = "${var.vpc_cidr_prefix}"
+  source             = "./modules/vpc"
+  name               = "${var.name}"
+  region             = "${var.region}"
+  vpc_cidr_prefix    = "${var.vpc_cidr_prefix}"
 }
 
 module "pipeline" {
@@ -32,6 +32,6 @@ terraform {
 
   backend "s3" {
     encrypt = true
-    key     = "twopoint-unops/state"
+    key     = "unops/terraform.tfstate"
   }
 }

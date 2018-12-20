@@ -14,6 +14,6 @@ output "codepipeline_service_role" {
 }
 
 output "badge_url" {
-  value       = "${aws_codebuild_project.badge_url}"
+  value       = "${aws_codebuild_project.unops_build.badge_url}"
   description = "The URL of the build badge"
 }

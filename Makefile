@@ -17,6 +17,10 @@ SUBNET_ID := ${SUBNET_ID}
 
 IP := $(shell dig +short myip.opendns.com @resolver1.opendns.com)
 
+ORGANIZATION := $(shell git config --get user.name)
+REPO := $(shell git rev-parse --show-toplevel | xargs basename)
+BRANCH := $(shell git name-rev --name-only --no-undefined --always HEAD)
+
 TERRAFORM_DIR=$(CURDIR)/terraform
 
 PACKER_FLAGS := -var "temp_cidr=$(IP)/32" \
@@ -27,24 +31,24 @@ PACKER_FLAGS := -var "temp_cidr=$(IP)/32" \
 				-var "secret_key=$(AWS_SECRET_ACCESS_KEY)"
 
 TERRAFORM_FLAGS = -var "region=$(AWS_REGION)" \
-						-var "access_key=$(AWS_ACCESS_KEY_ID)" \
-						-var "secret_key=$(AWS_SECRET_ACCESS_KEY)" \
-						-var "subnet_id="$(SUBNET_ID) \
-						-var "bucket_name=$(BUCKET)" \
-						-var "name=$(NAME)" \
-						-var "vpc_cidr_prefix=$(VPC_CIDR)" \
-						-var "service_name=$(NAME)" \
-						-var "account_id=$(ACCOUNT_ID)" \
-						-var "organization=$(ORGANIZATION)" \
-						-var "repo=$(REPO)"
+				  -var "access_key=$(AWS_ACCESS_KEY_ID)" \
+				  -var "secret_key=$(AWS_SECRET_ACCESS_KEY)" \
+				  -var "subnet_id="$(SUBNET_ID) \
+				  -var "bucket_name=$(BUCKET)" \
+				  -var "name=$(NAME)" \
+				  -var "vpc_cidr_prefix=$(VPC_CIDR)" \
+				  -var "service_name=$(NAME)" \
+				  -var "account_id=$(ACCOUNT_ID)" \
+				  -var "organization=$(ORGANIZATION)" \
+				  -var "repo=$(REPO)"
 
 check_defined = \
-				$(strip $(foreach 1,$1, \
-				$(call __check_defined,$1,$(strip $(value 2)))))
+		$(strip $(foreach 1,$1, \
+		$(call __check_defined,$1,$(strip $(value 2)))))
 __check_defined = \
-				  $(if $(value $1),, \
-				  $(error Undefined $1$(if $2, ($2))$(if $(value @), \
-				  required by target `$@')))
+		$(if $(value $1),, \
+		$(error Undefined $1$(if $2, ($2))$(if $(value @), \
+		required by target `$@')))
 
 all: test ami ## Runs test, ami
 
@@ -60,7 +64,7 @@ ami: ## Builds the AMI
 			$(MANIFEST)
 
 .PHONY: infra-init
-infra: ## Creates the AMI cratation pipeline
+infra-init:
 		@:$(call check_defined, AWS_REGION, Amazon Region)
 		@:$(call check_defined, AWS_ACCESS_KEY_ID, Amazon Access Key ID)
 		@:$(call check_defined, AWS_SECRET_ACCESS_KEY, Amazon Secret Access Key)
@@ -71,10 +75,15 @@ infra: ## Creates the AMI cratation pipeline
 		@:$(call check_defined, ACCOUNT_ID, Amazon Account ID)
 		@:$(call check_defined, ORGANIZATION, The Github user or organization with the build repo)
 		@:$(call check_defined, REPO, The Github repo containing the Packer templates used to build the AMI)
-		@cd $(TERRAFORM_DIR) && terrform init \
-						-backend-config "bucket=$(BUCKET)" \
-						-backend-config "region=$(AWS_REGION)" \
-						$(TERRAFORM_FLAGS)
+		@cd $(TERRAFORM_DIR) && terraform init \
+				-backend-config "bucket=$(BUCKET)" \
+				-backend-config "region=$(AWS_REGION)" \
+				$(TERRAFORM_FLAGS)
+
+.PHONY: infra-plan
+infra-plan: infra-init ## Run terraform plan
+		@cd $(TERRAFORM_DIR) && terraform plan \
+				$(TERRAFORM_FLAGS)
 
 .PHONY: test
 test: ## Runs the automated tests

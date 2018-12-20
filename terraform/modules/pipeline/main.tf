@@ -59,7 +59,7 @@ resource "aws_iam_role_policy" "codebuild_policy" {
 
 resource "aws_codebuild_project" "unops_build" {
   name          = "unops-build"
-  service_role  = "${aws_iam_role.build_service_role}"
+  service_role  = "${aws_iam_role.codebuild_role.arn}"
   badge_enabled = true
 
   artifacts {
@@ -85,6 +85,12 @@ resource "aws_codebuild_project" "unops_build" {
       "name"  = "BUILD_SUBNET_ID"
       "value" = "${var.subnet_id}"
     }
+  }
+
+  source {
+    type = "GITHUB"
+    location = "https://github.com/${var.organization}/${var.repo}.git"
+    git_clone_depth = 1
   }
 }
 
@@ -136,7 +142,7 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
           "codebuild:StopBuild",
           "codebuild:BatchGetBuilds"
         ],
-        "Resource": "${aws_codebuild_project.unops.arn}"
+        "Resource": "${aws_codebuild_project.unops_build.arn}"
       }
     ]
   }
@@ -182,7 +188,7 @@ resource "aws_codepipeline" "unops_pipeline" {
       version          = "1"
       input_artifacts  = ["SourceZip"]
       version          = "1"
-      output_artifacts = "BuiltZip"
+      output_artifacts = ["BuiltZip"]
 
       configuration {
         ProjectName = "${var.service_name}"

@@ -1,5 +1,7 @@
+data "aws_availability_zones" "available" {}
+
 resource "aws_vpc" "packer" {
-  cidr_block           = "${var.vpc_idr_prefix}.0.0/16"
+  cidr_block           = "${var.vpc_cidr_prefix}.0.0/16"
   enable_dns_hostnames = false
 
   tags {
@@ -16,6 +18,8 @@ resource "aws_internet_gateway" "packer" {
 }
 
 resource "aws_route_table" "packer" {
+  vpc_id = "${aws_vpc.packer.id}"
+
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = "${aws_internet_gateway.packer.id}"

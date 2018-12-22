@@ -14,6 +14,7 @@ AWS_SECRET_ACCESS_KEY := ${AWS_SECRET_ACCESS_KEY}
 VPC_ID := ${VPC_ID}
 IAM_PROF := ${IAM_PROF}
 SUBNET_ID := ${SUBNET_ID}
+GITHUB_TOKEN := ${GITHUB_TOKEN}
 
 IP := $(shell dig +short myip.opendns.com @resolver1.opendns.com)
 
@@ -26,9 +27,7 @@ TERRAFORM_DIR=$(CURDIR)/terraform
 PACKER_FLAGS := -var "temp_cidr=$(IP)/32" \
 				-var "vpc_id=$(VPC_ID)" \
 				-var "subnet_id=$(SUBNET_ID)" \
-				-var "iam_prof=$(IAM_PROF)" \
-				-var "access_key=$(AWS_ACCESS_KEY_ID)" \
-				-var "secret_key=$(AWS_SECRET_ACCESS_KEY)"
+				-var "iam_prof=$(IAM_PROF)"
 
 TERRAFORM_FLAGS = -var "region=$(AWS_REGION)" \
 				  -var "access_key=$(AWS_ACCESS_KEY_ID)" \
@@ -38,9 +37,10 @@ TERRAFORM_FLAGS = -var "region=$(AWS_REGION)" \
 				  -var "name=$(NAME)" \
 				  -var "vpc_cidr_prefix=$(VPC_CIDR)" \
 				  -var "service_name=$(NAME)" \
-				  -var "account_id=$(ACCOUNT_ID)" \
 				  -var "organization=$(ORGANIZATION)" \
-				  -var "repo=$(REPO)"
+				  -var "repo=$(REPO)" \
+					-var "github_token=$(GITHUB_TOKEN)" \
+					-auto-approve
 
 check_defined = \
 		$(strip $(foreach 1,$1, \
@@ -54,8 +54,6 @@ all: test ami ## Runs test, ami
 
 .PHONY: ami
 ami: ## Builds the AMI
-		@:$(call check_defined, AWS_ACCESS_KEY_ID, Amazon Access Key ID)
-		@:$(call check_defined, AWS_SECRET_ACCESS_KEY, Amazon Secret Access Key)
 		@:$(call check_defined, VPC_ID, Virtual Private Cloud to build in)
 		@:$(call check_defined, IAM_PROF, IAM Profile to use with the source instance)
 		@:$(call check_defined, SUBNET_ID, Subnet in which to run the source instance)
@@ -72,9 +70,9 @@ infra-init:
 		@:$(call check_defined, BUCKET, S3 bucket name in which to store the Terraform state)
 		@:$(call check_defined, NAME, Name of the build environment)
 		@:$(call check_defined, VPC_CIDR, The IP prefix to the CIDR block assigned to the VPC)
-		@:$(call check_defined, ACCOUNT_ID, Amazon Account ID)
 		@:$(call check_defined, ORGANIZATION, The Github user or organization with the build repo)
 		@:$(call check_defined, REPO, The Github repo containing the Packer templates used to build the AMI)
+		@:$(call check_defined, GITHUB_TOKEN, Github OAuth Personal Access token)
 		@cd $(TERRAFORM_DIR) && terraform init \
 				-backend-config "bucket=$(BUCKET)" \
 				-backend-config "region=$(AWS_REGION)" \
@@ -83,6 +81,16 @@ infra-init:
 .PHONY: infra-plan
 infra-plan: infra-init ## Run terraform plan
 		@cd $(TERRAFORM_DIR) && terraform plan \
+				$(TERRAFORM_FLAGS)
+
+.PHONY: infra-apply
+infra-apply: infra-init ## Run terraform apply
+		@cd $(TERRAFORM_DIR) && terraform apply \
+				$(TERRAFORM_FLAGS)
+
+.PHONY: infra-destroy
+infra-destroy: infra-init ## Run terraform destroy
+		@cd $(TERRAFORM_DIR) && terraform destroy \
 				$(TERRAFORM_FLAGS)
 
 .PHONY: test

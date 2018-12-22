@@ -12,8 +12,3 @@ output "codepipeline_service_role" {
   value       = "${aws_iam_role.codepipeline_role.arn}"
   description = "CodePipeline IAM Service Role"
 }
-
-output "badge_url" {
-  value       = "${aws_codebuild_project.unops_build.badge_url}"
-  description = "The URL of the build badge"
-}

@@ -22,8 +22,3 @@ output "codepipeline_service_role" {
   value       = "${module.pipeline.codepipeline_service_role}"
   description = "CodePipeline IAM Service Role"
 }
-
-output "badge_url" {
-  value       = "${module.pipeline.badge_url}"
-  description = "The URL of the build badge"
-}

@@ -36,11 +36,6 @@ variable "region" {
   default     = "us-east-1"
 }
 
-variable "account_id" {
-  type        = "string"
-  description = "the AWS account id (not IAM Account) in which the AMI will be built"
-}
-
 variable "image" {
   type        = "string"
   description = "Docker image to use for the codebuild container"
@@ -61,4 +56,9 @@ variable "branch" {
   type        = "string"
   description = "the name of the Github repository's branch to build"
   default     = "master"
+}
+
+variable "github_token" {
+  type        = "string"
+  description = "github personal access token"
 }

@@ -3,64 +3,71 @@ resource "aws_s3_bucket" "unops" {
   acl    = "private"
 }
 
-resource "aws_iam_role" "codebuild_role" {
-  name = "codebuild_role"
-  path = "/managed/"
+data "aws_iam_policy_document" "codebuild_assume_role" {
+  statement {
+    effect = "Allow"
 
-  assume_role_policy = <<EOF
-  {
-    "Version"  : "2012-10-17",
-    "Statement": [
-      {
-        "Effect"   : "Allow",
-        "Principal": {
-          "Service": "codebuild.amazonaws.com"
-        },
-        "Action": "sts:AssumeRole"
-      }
+    principals {
+      type        = "Service"
+      identifiers = ["codebuild.amazonaws.com"]
+    }
+
+    actions = [
+      "sts:AssumeRole",
     ]
   }
-  EOF
+}
+
+resource "aws_iam_role" "codebuild_role" {
+  name               = "codebuild_role"
+  path               = "/managed/"
+  assume_role_policy = "${data.aws_iam_policy_document.codebuild_assume_role.json}"
+}
+
+data "aws_caller_identity" "current" {}
+
+data "aws_iam_policy_document" "codebuild_permissions" {
+  statement {
+    sid    = "CodeBuildToCWL"
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+
+    resources = [
+      "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/codebuild/${var.service_name}_build",
+      "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/codebuild/${var.service_name}_build:*",
+    ]
+  }
+
+  statement {
+    sid    = "CodeBuildToS3ArtifactRepo"
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:GetObjectVersion",
+      "s3:PutObject",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.unops.arn}/*",
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "codebuild_policy" {
-  name = "codebuild_policy"
-  role = "${aws_iam_role.codebuild_role.id}"
-
-  policy = <<EOF
-  {
-    "Version"  : "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Action": [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ],
-        "Resource": [
-          "arn:aws:logs:${var.region}:${var.account_id}:log-group:/aws/codebuild/${var.service_name}_build",
-          "arn:aws:logs:${var.region}:${var.account_id}:log-group:/aws/codebuild/${var.service_name}_build:*"
-        ]
-      },
-      {
-        "Effect": "Allow",
-        "Action": [
-          "s3:GetObject",
-          "s3:GetObjectVersion",
-          "s3:PutObject"
-        ],
-        "Resource": "${aws_s3_bucket.unops.arn}/*"
-      }
-    ]
-  }
-  EOF
+  name   = "codebuild_policy"
+  role   = "${aws_iam_role.codebuild_role.id}"
+  policy = "${data.aws_iam_policy_document.codebuild_permissions.json}"
 }
 
 resource "aws_codebuild_project" "unops_build" {
-  name          = "unops-build"
-  service_role  = "${aws_iam_role.codebuild_role.arn}"
-  badge_enabled = true
+  name         = "unops-build"
+  service_role = "${aws_iam_role.codebuild_role.arn}"
 
   artifacts {
     type = "CODEPIPELINE"
@@ -77,76 +84,93 @@ resource "aws_codebuild_project" "unops_build" {
     }
 
     environment_variable {
-      "name"  = "BUILD_VPC_ID"
+      "name"  = "VPC_ID"
       "value" = "${var.vpc_id}"
     }
 
     environment_variable {
-      "name"  = "BUILD_SUBNET_ID"
+      "name"  = "SUBNET_ID"
       "value" = "${var.subnet_id}"
     }
   }
 
   source {
-    type = "GITHUB"
-    location = "https://github.com/${var.organization}/${var.repo}.git"
-    git_clone_depth = 1
+    type = "CODEPIPELINE"
   }
 }
 
 resource "aws_iam_role" "codepipeline_role" {
-  name = "codepipeline_role"
-  path = "/managed/"
+  name               = "codepipeline_role"
+  path               = "/managed/"
+  assume_role_policy = "${data.aws_iam_policy_document.codepipeline_assume_role.json}"
+}
 
-  assume_role_policy = <<EOF
-  {
-    "Version"  : "2012-10-17",
-    "Statement": [
-      {
-        "Effect"   : "Allow",
-        "Principal": {
-          "Service": "codepipeline.amazonaws.com"
-        },
-        "Action": "sts:AssumeRole"
-      }
+data "aws_iam_policy_document" "codepipeline_assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["codepipeline.amazonaws.com"]
+    }
+
+    actions = [
+      "sts:AssumeRole",
     ]
   }
-  EOF
 }
 
 resource "aws_iam_role_policy" "codepipeline_policy" {
-  name = "codepipeline_policy"
-  role = "${aws_iam_role.codepipeline_role.id}"
+  name   = "codepipeline_policy"
+  role   = "${aws_iam_role.codepipeline_role.id}"
+  policy = "${data.aws_iam_policy_document.codepipeline_permissions.json}"
+}
 
-  policy = <<EOF
-  {
-    "Version"  : "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Action": [
-          "s3:GetObject",
-          "s3:GetObjectVersion",
-          "s3:GetBucketVersioning",
-          "s3:PutObject"
-        ],
-        "Resource": [
-          "${aws_s3_bucket.unops.bucket}",
-          "${aws_s3_bucket.unops.bucket}/*"
-        ]
-      },
-      {
-        "Effect": "Allow",
-        "Action": [
-          "codebuild:StartBuild",
-          "codebuild:StopBuild",
-          "codebuild:BatchGetBuilds"
-        ],
-        "Resource": "${aws_codebuild_project.unops_build.arn}"
-      }
+data "aws_iam_policy_document" "codepipeline_permissions" {
+  statement {
+    sid    = "CodePipelinePassRoleAccess"
+    effect = "Allow"
+
+    actions = [
+      "iam:PassRole",
+    ]
+
+    resources = [
+      "${aws_iam_role.codebuild_role.arn}",
     ]
   }
-  EOF
+
+  statement {
+    sid    = "CodePipelineS3ArtifactAccess"
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:GetObjectVersion",
+      "s3:GetBucketVersioning",
+      "s3:PutObject",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.unops.arn}",
+      "${aws_s3_bucket.unops.arn}/*",
+    ]
+  }
+
+  statement {
+    sid    = "CodePipelineBuildAccess"
+    effect = "Allow"
+
+    actions = [
+      "codebuild:StartBuild",
+      "codebuild:StopBuild",
+      "codebuild:BatchGetBuilds",
+    ]
+
+    resources = [
+      "${aws_codebuild_project.unops_build.arn}",
+    ]
+  }
 }
 
 resource "aws_codepipeline" "unops_pipeline" {
@@ -170,9 +194,10 @@ resource "aws_codepipeline" "unops_pipeline" {
       output_artifacts = ["SourceZip"]
 
       configuration {
-        Owner  = "${var.organization}"
-        Repo   = "${var.repo}"
-        Branch = "${var.branch}"
+        Owner      = "${var.organization}"
+        Repo       = "${var.repo}"
+        Branch     = "${var.branch}"
+        OAuthToken = "${var.github_token}"
       }
     }
   }

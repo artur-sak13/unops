@@ -12,7 +12,7 @@ phases:
       - echo "Validating Packer template"
       - pip install --upgrade pip setuptools
       - pip install ansible ansible-lint
-      - packer validate template.json
+      - make test
   build:
     commands:
       - make ami | tee build.log

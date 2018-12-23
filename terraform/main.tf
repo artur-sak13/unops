@@ -31,6 +31,7 @@ terraform {
   required_version = ">= 0.11.11"
 
   backend "s3" {
+    bucket  = "twopoint-tf-state"
     encrypt = true
     key     = "unops/terraform.tfstate"
   }

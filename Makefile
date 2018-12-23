@@ -11,6 +11,8 @@ ACCOUNT_ID := ${ACCOUNT_ID}
 AWS_REGION := ${AWS_REGION}
 AWS_ACCESS_KEY_ID := ${AWS_ACCESS_KEY_ID}
 AWS_SECRET_ACCESS_KEY := ${AWS_SECRET_ACCESS_KEY}
+BUCKET := ${BUCKET}
+BUILD_BUCKET := ${BUILD_BUCKET}
 VPC_ID := ${VPC_ID}
 IAM_PROF := ${IAM_PROF}
 SUBNET_ID := ${SUBNET_ID}
@@ -22,9 +24,9 @@ ORGANIZATION := $(shell git config --get user.name)
 REPO := $(shell git rev-parse --show-toplevel | xargs basename)
 BRANCH := $(shell git name-rev --name-only --no-undefined --always HEAD)
 
-TERRAFORM_DIR=$(CURDIR)/terraform
+TERRAFORM_DIR = $(CURDIR)/terraform
 
-PACKER_FLAGS := -var "temp_cidr=$(IP)/32" \
+PACKER_FLAGS = -var "temp_cidr=$(IP)/32" \
 				-var "vpc_id=$(VPC_ID)" \
 				-var "subnet_id=$(SUBNET_ID)" \
 				-var "iam_prof=$(IAM_PROF)"
@@ -33,14 +35,13 @@ TERRAFORM_FLAGS = -var "region=$(AWS_REGION)" \
 				  -var "access_key=$(AWS_ACCESS_KEY_ID)" \
 				  -var "secret_key=$(AWS_SECRET_ACCESS_KEY)" \
 				  -var "subnet_id="$(SUBNET_ID) \
-				  -var "bucket_name=$(BUCKET)" \
+				  -var "bucket_name=$(BUILD_BUCKET)" \
 				  -var "name=$(NAME)" \
 				  -var "vpc_cidr_prefix=$(VPC_CIDR)" \
 				  -var "service_name=$(NAME)" \
 				  -var "organization=$(ORGANIZATION)" \
 				  -var "repo=$(REPO)" \
-					-var "github_token=$(GITHUB_TOKEN)" \
-					-auto-approve
+					-var "github_token=$(GITHUB_TOKEN)"
 
 check_defined = \
 		$(strip $(foreach 1,$1, \
@@ -86,7 +87,8 @@ infra-plan: infra-init ## Run terraform plan
 .PHONY: infra-apply
 infra-apply: infra-init ## Run terraform apply
 		@cd $(TERRAFORM_DIR) && terraform apply \
-				$(TERRAFORM_FLAGS)
+				$(TERRAFORM_FLAGS) \
+				-auto-approve
 
 .PHONY: infra-destroy
 infra-destroy: infra-init ## Run terraform destroy

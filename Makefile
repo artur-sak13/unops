@@ -21,9 +21,9 @@ SMS_NUMBER := ${SMS_NUMBER}
 
 IP := $(shell dig +short myip.opendns.com @resolver1.opendns.com)
 
-REPO_OWNER := $(shell git config --get user.name)
-REPO := $(shell git rev-parse --show-toplevel | xargs basename)
-BRANCH := $(shell git name-rev --name-only --no-undefined --always HEAD)
+REPO_OWNER := $(shell git config --get user.name 2>/dev/null)
+REPO := $(shell git rev-parse --show-toplevel 2>/dev/null | xargs basename 2>/dev/null)
+BRANCH := $(shell git name-rev --name-only --no-undefined --always HEAD 2>/dev/null)
 
 TERRAFORM_DIR = $(CURDIR)/terraform
 

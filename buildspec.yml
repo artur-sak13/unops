@@ -3,6 +3,7 @@ run-as: root
 env:
   variables:
     PACKER_VERSION: "1.3.3"
+    USER: root
 phases:
   pre_build:
     commands:
@@ -12,7 +13,8 @@ phases:
       - unzip -o packer.zip -d /usr/local/bin
       - echo "Validating Packer template"
       - pip install --upgrade pip setuptools
-      - pip install ansible ansible-lint
+      - pip install git+https://github.com/ansible/ansible@stable-2.7
+      - pip install ansible-lint
       - packer -v
   build:
     commands:

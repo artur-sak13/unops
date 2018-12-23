@@ -21,10 +21,11 @@ module "pipeline" {
   image        = "${var.image}"
   vpc_id       = "${module.vpc.vpc_id}"
   subnet_id    = "${module.vpc.subnet_id}"
-  organization = "${var.organization}"
+  repo_owner   = "${var.repo_owner}"
   repo         = "${var.repo}"
   branch       = "${var.branch}"
   github_token = "${var.github_token}"
+  sms_number   = "${var.sms_number}"
 }
 
 terraform {

@@ -29,9 +29,9 @@ variable "subnet_id" {
   description = "the id of the subnet in which the AMI will be built"
 }
 
-variable "organization" {
+variable "repo_owner" {
   type        = "string"
-  description = "the user or organization who owns the repo"
+  description = "github organization or user who owns the repository"
 }
 
 variable "repo" {
@@ -48,4 +48,9 @@ variable "branch" {
 variable "github_token" {
   type        = "string"
   description = "github personal access token"
+}
+
+variable "sms_number" {
+  type        = "string"
+  description = "sms number to notify on completed build"
 }

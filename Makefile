@@ -17,10 +17,11 @@ VPC_ID := ${VPC_ID}
 IAM_PROF := ${IAM_PROF}
 SUBNET_ID := ${SUBNET_ID}
 GITHUB_TOKEN := ${GITHUB_TOKEN}
+SMS_NUMBER := ${SMS_NUMBER}
 
 IP := $(shell dig +short myip.opendns.com @resolver1.opendns.com)
 
-ORGANIZATION := $(shell git config --get user.name)
+REPO_OWNER := $(shell git config --get user.name)
 REPO := $(shell git rev-parse --show-toplevel | xargs basename)
 BRANCH := $(shell git name-rev --name-only --no-undefined --always HEAD)
 
@@ -29,7 +30,8 @@ TERRAFORM_DIR = $(CURDIR)/terraform
 PACKER_FLAGS = -var "temp_cidr=$(IP)/32" \
 				-var "vpc_id=$(VPC_ID)" \
 				-var "subnet_id=$(SUBNET_ID)" \
-				-var "iam_prof=$(IAM_PROF)"
+				-var "iam_prof=$(IAM_PROF)" \
+				-color=false
 
 TERRAFORM_FLAGS = -var "region=$(AWS_REGION)" \
 				  -var "access_key=$(AWS_ACCESS_KEY_ID)" \
@@ -39,9 +41,10 @@ TERRAFORM_FLAGS = -var "region=$(AWS_REGION)" \
 				  -var "name=$(NAME)" \
 				  -var "vpc_cidr_prefix=$(VPC_CIDR)" \
 				  -var "service_name=$(NAME)" \
-				  -var "organization=$(ORGANIZATION)" \
+				  -var "repo_owner=$(REPO_OWNER)" \
 				  -var "repo=$(REPO)" \
-					-var "github_token=$(GITHUB_TOKEN)"
+					-var "github_token=$(GITHUB_TOKEN)" \
+					-var "sms_number=$(SMS_NUMBER)"
 
 check_defined = \
 		$(strip $(foreach 1,$1, \
@@ -58,7 +61,7 @@ ami: ## Builds the AMI
 		@:$(call check_defined, VPC_ID, Virtual Private Cloud to build in)
 		@:$(call check_defined, IAM_PROF, IAM Profile to use with the source instance)
 		@:$(call check_defined, SUBNET_ID, Subnet in which to run the source instance)
-		PACKER_LOG=1 $(PACKER) build \
+		$(PACKER) build \
 			$(PACKER_FLAGS) \
 			$(MANIFEST)
 
@@ -71,9 +74,10 @@ infra-init:
 		@:$(call check_defined, BUCKET, S3 bucket name in which to store the Terraform state)
 		@:$(call check_defined, NAME, Name of the build environment)
 		@:$(call check_defined, VPC_CIDR, The IP prefix to the CIDR block assigned to the VPC)
-		@:$(call check_defined, ORGANIZATION, The Github user or organization with the build repo)
+		@:$(call check_defined, REPO_OWNER, The Github organization or user who owns the repository)
 		@:$(call check_defined, REPO, The Github repo containing the Packer templates used to build the AMI)
 		@:$(call check_defined, GITHUB_TOKEN, Github OAuth Personal Access token)
+		@:$(call check_defined, SMS_NUMBER, SMS number to notify on completed build)
 		@cd $(TERRAFORM_DIR) && terraform init \
 				-backend-config "bucket=$(BUCKET)" \
 				-backend-config "region=$(AWS_REGION)" \

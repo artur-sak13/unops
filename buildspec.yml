@@ -4,10 +4,10 @@ env:
 phases:
   pre_build:
     commands:
-      - sudo yum update -y && sudo yum install -y bind-utils
+      - yum update -y && yum install -y bind-utils
       - echo "Installing Packer"
       - curl -o packer.zip https://releases.hashicorp.com/packer/$PACKER_VERSION/packer_$PACKER_VERSION_linux_amd64.zip
-      - sudo unzip -o packer.zip -d /usr/local/bin
+      - unzip -o packer.zip -d /usr/local/bin
       - echo "Validating Packer template"
       - pip install ansible ansible-lint molecule docker-py
       - packer validate template.json
@@ -18,11 +18,11 @@ phases:
     commands:
       - egrep "${AWS_REGION}\:\sami\-" build.log | cut -d' ' -f2 > ami_id.txt
       - test -s ami_id.txt || exit 1
-      - sed -i.bak "s//$(cat ami_id.txt)/g" ami_builder_event.json
-      - aws events put-events --entries file://ami_builder_event.json
+      - sed -i.bak "s/<<AMI-ID>>/$(cat ami_id.txt)/g" unops_build_event.json
+      - aws events put-events --entries file://unops_build_event.json
       - echo "build completed on `date`"
 artifacts:
   files:
-    - ami_builder_event.json
+    - unops_build_event.json
     - build.log
   discard-paths: yes

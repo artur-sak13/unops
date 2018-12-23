@@ -25,6 +25,11 @@ resource "aws_iam_role" "codebuild_role" {
   assume_role_policy    = "${data.aws_iam_policy_document.codebuild_assume_role.json}"
 }
 
+resource "aws_iam_role_policy_attachment" "codebuild_poweruser" {
+  role       = "${aws_iam_role.codebuild_role.name}"
+  policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
+}
+
 resource "aws_iam_role_policy_attachment" "codebuild_cwl" {
   role       = "${aws_iam_role.codebuild_role.name}"
   policy_arn = "${aws_iam_policy.codebuild_to_cwl_policy.arn}"
@@ -238,7 +243,7 @@ resource "aws_codepipeline" "unops_pipeline" {
       output_artifacts = ["code"]
 
       configuration {
-        Owner      = "${var.organization}"
+        Owner      = "${var.repo_owner}"
         Repo       = "${var.repo}"
         Branch     = "${var.branch}"
         OAuthToken = "${var.github_token}"
@@ -263,6 +268,62 @@ resource "aws_codepipeline" "unops_pipeline" {
         ProjectName = "${aws_codebuild_project.unops_build.name}"
       }
     }
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "custom_event" {
+  name        = "UnopsEvent"
+  description = "Notify on AMI build completion"
+
+  event_pattern = <<PATTERN
+  {
+    "source"     : [
+      "com.unops.build"
+    ],
+    "detail-type": [
+      "UnopsBuild"
+    ],
+    "detail"     : {
+      "AmiStatus": [
+        "Created"
+      ]
+    }
+  }
+  PATTERN
+}
+
+resource "aws_cloudwatch_event_target" "sns" {
+  rule      = "${aws_cloudwatch_event_rule.custom_event.name}"
+  target_id = "UnopsBuild-Notify"
+  arn       = "${aws_sns_topic.unops_sns_topic.arn}"
+}
+
+resource "aws_sns_topic" "unops_sns_topic" {
+  name = "UnopsNotificationTopic"
+}
+
+resource "aws_sns_topic_subscription" "unops_subscription" {
+  topic_arn = "${aws_sns_topic.unops_sns_topic.arn}"
+  protocol  = "sms"
+  endpoint  = "${var.sms_number}"
+}
+
+resource "aws_sns_topic_policy" "unops_notification_topic_policy" {
+  arn    = "${aws_sns_topic.unops_sns_topic.arn}"
+  policy = "${data.aws_iam_policy_document.sns_topic_policy.json}"
+}
+
+data "aws_iam_policy_document" "sns_topic_policy" {
+  statement {
+    effect  = "Allow"
+    actions = ["sns:Publish"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["events.amazonaws.com"]
+    }
+
+    resources = ["${aws_sns_topic.unops_sns_topic.arn}"]
   }
 }
 

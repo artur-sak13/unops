@@ -14,7 +14,6 @@ AWS_SECRET_ACCESS_KEY := ${AWS_SECRET_ACCESS_KEY}
 BUCKET := ${BUCKET}
 BUILD_BUCKET := ${BUILD_BUCKET}
 VPC_ID := ${VPC_ID}
-IAM_PROF := ${IAM_PROF}
 SUBNET_ID := ${SUBNET_ID}
 GITHUB_TOKEN := ${GITHUB_TOKEN}
 SMS_NUMBER := ${SMS_NUMBER}
@@ -30,7 +29,6 @@ TERRAFORM_DIR = $(CURDIR)/terraform
 PACKER_FLAGS = -var "temp_cidr=$(IP)/32" \
 				-var "vpc_id=$(VPC_ID)" \
 				-var "subnet_id=$(SUBNET_ID)" \
-				-var "iam_prof=$(IAM_PROF)" \
 				-color=false
 
 TERRAFORM_FLAGS = -var "region=$(AWS_REGION)" \
@@ -59,7 +57,6 @@ all: test ami ## Runs test, ami
 .PHONY: ami
 ami: ## Builds the AMI
 		@:$(call check_defined, VPC_ID, Virtual Private Cloud to build in)
-		@:$(call check_defined, IAM_PROF, IAM Profile to use with the source instance)
 		@:$(call check_defined, SUBNET_ID, Subnet in which to run the source instance)
 		$(PACKER) build \
 			$(PACKER_FLAGS) \

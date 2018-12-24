@@ -30,6 +30,11 @@ resource "aws_iam_role_policy_attachment" "codebuild_poweruser" {
   policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "codebuild_org_readonly" {
+  role       = "${aws_iam_role.codebuild_role.name}"
+  policy_arn = "arn:aws:iam::aws:policy/AWSOrganizationsReadOnlyAccess"
+}
+
 resource "aws_iam_role_policy_attachment" "codebuild_cwl" {
   role       = "${aws_iam_role.codebuild_role.name}"
   policy_arn = "${aws_iam_policy.codebuild_to_cwl_policy.arn}"

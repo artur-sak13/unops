@@ -19,6 +19,7 @@ GITHUB_TOKEN := ${GITHUB_TOKEN}
 SMS_NUMBER := ${SMS_NUMBER}
 
 IP := $(shell dig +short myip.opendns.com @resolver1.opendns.com)
+AMI_USERS := $(shell aws organizations list-accounts | jq -r '[.Accounts[].Id | tonumber] | @csv')
 
 REPO_OWNER := $(shell git config --get user.name 2>/dev/null)
 REPO := $(shell git rev-parse --show-toplevel 2>/dev/null | xargs basename 2>/dev/null)
@@ -29,6 +30,7 @@ TERRAFORM_DIR = $(CURDIR)/terraform
 PACKER_FLAGS = -var "temp_cidr=$(IP)/32" \
 				-var "vpc_id=$(VPC_ID)" \
 				-var "subnet_id=$(SUBNET_ID)" \
+				-var "ami_users=$(AMI_USERS)" \
 				-color=false
 
 TERRAFORM_FLAGS = -var "region=$(AWS_REGION)" \

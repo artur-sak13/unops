@@ -35,7 +35,8 @@
       "vpc_id"                              : "{{user `vpc_id`}}",
       "subnet_id"                           : "{{user `subnet_id`}}",
       "iam_instance_profile"                : "{{user `iam_prof`}}",
-      "temporary_security_group_source_cidr": "{{user `temp_cidr`}}"
+      "temporary_security_group_source_cidr": "{{user `temp_cidr`}}",
+      "ami_users"                           : "{{user `ami_users`}}"
     }
   ],
   "provisioners": [
@@ -56,6 +57,7 @@
     "iam_prof"  : "",
     "aws_region": "{{env `AWS_REGION`}}",
     "ami_regex" : "CentOS Linux 7 x86_64*",
-    "ami_name"  : "CentOS-7-{{timestamp}}"
+    "ami_name"  : "CentOS-7-{{timestamp}}",
+    "ami_users" : ""
   }
 }

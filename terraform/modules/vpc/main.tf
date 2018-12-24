@@ -2,8 +2,8 @@ data "aws_availability_zones" "available" {}
 
 resource "aws_vpc" "packer" {
   cidr_block           = "${var.vpc_cidr_prefix}.0.0/16"
-  enable_dns_hostnames = false
-  enable_dns_support   = false
+  enable_dns_hostnames = true
+  enable_dns_support   = true
 
   tags {
     Name = "${var.name}"

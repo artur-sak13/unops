@@ -7,12 +7,12 @@ env:
 phases:
   pre_build:
     commands:
-      - yum update -y && yum install -y bind-utils git jq
+      - apt-get update -y && apt-get install -y --no-install-recommends dnsutils
       - echo "Installing Packer"
       - curl -o packer.zip "https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip"
       - unzip -o packer.zip -d /usr/local/bin
       - echo "Installing Ansible"
-      - pip install --upgrade pip setuptools
+      - pip install --upgrade pip setuptools awscli
       - pip install git+https://github.com/ansible/ansible@stable-2.7
       - pip install ansible-lint
       - packer -v

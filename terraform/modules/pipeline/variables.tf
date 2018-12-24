@@ -16,7 +16,7 @@ variable "region" {
 variable "image" {
   type        = "string"
   description = "Docker image to use for the codebuild container"
-  default     = "eb-python-2.7-amazonlinux-64:2.1.6"
+  default     = "python:3.7.1"
 }
 
 variable "vpc_id" {

@@ -7,6 +7,8 @@ PACKER := packer
 ANSIBLE_LINT := ansible-lint
 ANSIBLE_PLAYBOOK := ansible-playbook
 
+PYTHON := python3
+
 ACCOUNT_ID := ${ACCOUNT_ID}
 AWS_REGION := ${AWS_REGION}
 AWS_ACCESS_KEY_ID := ${AWS_ACCESS_KEY_ID}
@@ -16,7 +18,6 @@ BUILD_BUCKET := ${BUILD_BUCKET}
 VPC_ID := ${VPC_ID}
 SUBNET_ID := ${SUBNET_ID}
 GITHUB_TOKEN := ${GITHUB_TOKEN}
-SMS_NUMBER := ${SMS_NUMBER}
 
 IP := $(shell dig +short myip.opendns.com @resolver1.opendns.com)
 AMI_USERS := $(shell aws organizations list-accounts | jq -r '[.Accounts[].Id | tonumber] | @csv')
@@ -24,6 +25,7 @@ AMI_USERS := $(shell aws organizations list-accounts | jq -r '[.Accounts[].Id | 
 REPO_OWNER := $(shell git config --get user.name 2>/dev/null)
 REPO := $(shell git rev-parse --show-toplevel 2>/dev/null | xargs basename 2>/dev/null)
 BRANCH := $(shell git name-rev --name-only --no-undefined --always HEAD 2>/dev/null)
+
 
 TERRAFORM_DIR = $(CURDIR)/terraform
 
@@ -76,7 +78,6 @@ infra-init:
 		@:$(call check_defined, REPO_OWNER, The Github organization or user who owns the repository)
 		@:$(call check_defined, REPO, The Github repo containing the Packer templates used to build the AMI)
 		@:$(call check_defined, GITHUB_TOKEN, Github OAuth Personal Access token)
-		@:$(call check_defined, SMS_NUMBER, SMS number to notify on completed build)
 		@cd $(TERRAFORM_DIR) && terraform init \
 				-backend-config "bucket=$(BUCKET)" \
 				-backend-config "region=$(AWS_REGION)" \
@@ -105,6 +106,11 @@ test: ## Runs the automated tests
 	$(ANSIBLE_PLAYBOOK) --syntax-check ${PREFIX}/ansible/playbook.yml
 	$(ANSIBLE_LINT) ${PREFIX}/ansible/playbook.yml -x ANSIBLE0010
 	$(CURDIR)/test.sh
+
+.PHONY: run-lambda
+run-lambda: ## Runs the lambda function locally
+	@echo "+ $@"
+	@$(PYTHON) $(CURDIR)/terraform/modules/lambda/function/notify.py
 
 .PHONY: help
 help:

@@ -25,7 +25,11 @@ module "pipeline" {
   repo         = "${var.repo}"
   branch       = "${var.branch}"
   github_token = "${var.github_token}"
-  sms_number   = "${var.sms_number}"
+}
+
+module "lambda" {
+  source = "./modules/lambda"
+
 }
 
 terraform {

@@ -7,3 +7,4 @@ terraform/.terraform
 *.retry
 *.flatpakrepo
 *.log
+*.pytest_cache/

@@ -5,14 +5,18 @@ import base64
 import requests
 import logging
 from datetime import datetime
+from dateutil import tz
 
-# ENCRYPTED_HOOK_URL = os.getenv("MATTERMOST_WEBHOOK_URL")
+ENCRYPTED_HOOK_URL = os.getenv("MATTERMOST_WEBHOOK_URL")
 MATTERMOST_CHANNEL = os.getenv("MATTERMOST_CHANNEL")
 MATTERMOST_USERNAME = os.getenv("MATTERMOST_USERNAME")
 MATTERMOST_ICONURL = os.getenv("MATTERMOST_ICONURL")
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+from_zone = tz.gettz("UTC")
+to_zone = tz.gettz("America/Chicago")
 
 
 def decrypt(encrypted_url):
@@ -29,13 +33,18 @@ def decrypt(encrypted_url):
 def format_date(date):
     try:
         dt = datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
-        return dt.strftime("%a %b %d, %Y %I:%M:%S%Z %p")
+        dt = dt.replace(tzinfo=from_zone).astimezone(to_zone)
+        return dt.strftime("%a %b %d, %Y at %I:%M:%S%Z %p")
     except Exception:
         logger.exception("Failed to parse datetime")
 
 
 def notify_mattermost(message):
-    mattermost_url = decrypt(ENCRYPTED_HOOK_URL)
+    if not ENCRYPTED_HOOK_URL.startswith("https:"):
+        mattermost_url = decrypt(ENCRYPTED_HOOK_URL)
+    else:
+        mattermost_url = ENCRYPTED_HOOK_URL
+    aws_url = "https://console.aws.amazon.com/ec2/v2/home?region={}#Images:sort=name"
     payload = {
         "channel": MATTERMOST_CHANNEL,
         "username": MATTERMOST_USERNAME,
@@ -44,7 +53,7 @@ def notify_mattermost(message):
             {
                 'fallback': message.get('detail-type'),
                 'color': '#759C3D',
-                'text': 'New AMI created in {}!'.format(message.get("region")),
+                'text': 'New AMI created in [{0}]({1})!'.format(message.get("region"), aws_url.format(message.get("region"))),
                 'title': message.get('detail-type'),
                 'title_link': 'https://gihub.com/artur-sak13/unops',
                 'fields': [
@@ -69,9 +78,13 @@ def notify_mattermost(message):
             }
         ]
     }
-    print('DEBUG PAYLOAD:', json.dumps(payload))
+    #print('DEBUG PAYLOAD:', json.dumps(payload))
     r = requests.post(mattermost_url, json=payload)
-    return r.status_code
+    return {
+        "response": r.status_code,
+        "body": json.dumps(payload)
+    }
+
 
 
 def lambda_handler(event, context):
@@ -82,6 +95,7 @@ def lambda_handler(event, context):
 if __name__ == '__main__':
     cloudwatch_event_template = json.loads(r"""
     {
+
         "version": "0",
         "id": "12345678-9b15-3579-b619-7869ada6n04k",
         "detail-type": "Unops Build",

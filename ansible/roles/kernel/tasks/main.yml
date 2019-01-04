@@ -1,6 +1,6 @@
 ---
 - name: Add EPELRepo
-  yum:
+  package:
     name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     state: present
   register: result
@@ -41,7 +41,7 @@
   until: result is succeeded
 
 - name: Install New Kernel
-  yum:
+  package:
     name: "{{ packages }}"
     state: installed
     update_cache: true
@@ -61,7 +61,7 @@
     reboot_timeout: 3600
 
 - name: Upgrade all packages
-  yum:
+  package:
     name: '*'
     update_cache: true
     update_only: true

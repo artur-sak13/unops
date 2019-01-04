@@ -1,7 +1,23 @@
 ---
 # Which Desktop Environment to install
-xrdp_desktop: "@^kde-desktop-environment"
-xrdp_xsession: "startkde"
+xrdp_desktop_env:
+  kde:
+    desktop: "@^kde-desktop-environment"
+    xsession: "startkde"
+  cinnamon:
+    desktop: "@^cinnamon-desktop"
+    xsession: "cinnamon"
+  mate:
+    desktop: "@^mate-desktop"
+    xsession: "mate-session"
+  gnome:
+    desktop: "@^gnome-desktop"
+    xsession: "gnome-session"
+  xfce:
+    desktop: "@^xfce-desktop"
+    xsession: "xfce4-session"
+
+xrdp_desktop: "kde"
 xrdp_install_gui: true
 xrdp_users: []
 # xrdp_users:

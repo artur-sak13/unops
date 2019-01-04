@@ -4,7 +4,7 @@
   become: true
   pre_tasks:
   - name: run initial yum update
-    yum:
+    package:
       name: '*'
       state: latest
       update_cache: true

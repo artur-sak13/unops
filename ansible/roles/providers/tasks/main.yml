@@ -1,3 +1,11 @@
 ---
 - include_tasks: aws.yml
   when: provider_name.lower() == 'aws'
+
+- name: check if agent setup log exists
+  stat:
+    path: /var/log/awslogs-agent-setup.log
+  register: agent_setup_log
+
+- include: agent.yml
+  when: not agent_setup_log.stat.exists

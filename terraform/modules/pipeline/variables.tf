@@ -49,8 +49,3 @@ variable "github_token" {
   type        = "string"
   description = "github personal access token"
 }
-
-variable "sms_number" {
-  type        = "string"
-  description = "sms number to notify on completed build"
-}

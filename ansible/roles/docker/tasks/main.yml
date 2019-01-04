@@ -1,6 +1,6 @@
 ---
 - name: Add Docker dependencies
-  yum:
+  package:
     name: "{{ packages }}"
     state: present
   vars:
@@ -33,7 +33,7 @@
   until: result is succeeded
 
 - name: Install Docker-CE
-  yum:
+  package:
     name: docker-ce
     state: present
   register: result

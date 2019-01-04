@@ -1,16 +1,19 @@
 ---
 - name: install epel repository
-  yum:
+  package:
     name: epel-release
     state: present
   register: result
   until: result is succeeded
   tags: ["gui", "installation"]
 
+- name: desktop environment
+  debug:
+    msg: "Chosen desktop - {{ xrdp_desktop_env[xrdp_desktop].desktop }}"
 
 - name: install desktop environment
-  yum:
-    name: "{{ xrdp_desktop }}"
+  package:
+    name: "{{ xrdp_desktop_env[xrdp_desktop].desktop }}"
     state: present
   when: xrdp_install_gui
   register: result
@@ -18,7 +21,7 @@
   tags: ["gui", "installation"]
 
 - name: install xrdp
-  yum:
+  package:
     name: "{{ packages }}"
     state: present
   vars:
@@ -30,7 +33,7 @@
   tags: ["gui", "installation"]
 
 - name: install tigerVNC server
-  yum:
+  package:
     name: tigervnc-server
     state: present
   register: result

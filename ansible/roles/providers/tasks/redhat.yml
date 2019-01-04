@@ -1,0 +1,8 @@
+---
+- name: override /etc/logrotate.d/awslogs
+  template:
+    src: etc/logrotate.d/awslogs_redhat.j2
+    dest: /etc/logrotate.d/awslogs
+    owner: root
+    group: root
+    mode: 0644

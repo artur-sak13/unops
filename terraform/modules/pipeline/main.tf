@@ -297,39 +297,10 @@ resource "aws_cloudwatch_event_rule" "custom_event" {
   PATTERN
 }
 
-resource "aws_cloudwatch_event_target" "sns" {
+resource "aws_cloudwatch_event_target" "lambda" {
   rule      = "${aws_cloudwatch_event_rule.custom_event.name}"
-  target_id = "UnopsBuild-Notify"
-  arn       = "${aws_sns_topic.unops_sns_topic.arn}"
-}
-
-resource "aws_sns_topic" "unops_sns_topic" {
-  name = "UnopsNotificationTopic"
-}
-
-resource "aws_sns_topic_subscription" "unops_subscription" {
-  topic_arn = "${aws_sns_topic.unops_sns_topic.arn}"
-  protocol  = "sms"
-  endpoint  = "${var.sms_number}"
-}
-
-resource "aws_sns_topic_policy" "unops_notification_topic_policy" {
-  arn    = "${aws_sns_topic.unops_sns_topic.arn}"
-  policy = "${data.aws_iam_policy_document.sns_topic_policy.json}"
-}
-
-data "aws_iam_policy_document" "sns_topic_policy" {
-  statement {
-    effect  = "Allow"
-    actions = ["sns:Publish"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["events.amazonaws.com"]
-    }
-
-    resources = ["${aws_sns_topic.unops_sns_topic.arn}"]
-  }
+  target_id = "${aws_cloudwatch_event_rule.custom_event.name}"
+  arn       = "${aws_lambda_function.notify_mattermost.arn}"
 }
 
 data "aws_caller_identity" "current" {}

@@ -1,6 +1,6 @@
 ---
 - name: perform a yum update
-  yum:
+  package:
     name: '*'
     update_cache: true
     update_only: true
@@ -9,14 +9,14 @@
   when: common_upgrade_base | bool
 
 - name: install baseline dependencies
-  yum:
+  package:
     name: "{{ common_rpms }}"
     state: present
   register: result
   until: result is succeeded
 
 - name: install extra rpms
-  yum:
+  package:
     name: "{{ common_extra_rpm }}"
   register: result
   until: result is succeeded

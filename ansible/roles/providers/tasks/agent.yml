@@ -1,0 +1,28 @@
+---
+- name: configure aws cloudwatch logs agent
+  template:
+    src: etc/awslogs/awslogs.conf.j2
+    dest: /tmp/awslogs.conf
+    owner: root
+    group: root
+    mode: 0600
+
+- name: download install script
+  get_url:
+    url: https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
+    dest: /tmp/awslogs-agent-setup.py
+    mode: 550
+  register: result
+
+- name: install aws cloudwatch logs agent
+  command: python /tmp/awslogs-agent-setup.py -n -r {{ cwlogs_aws_region }} -c /tmp/awslogs.conf
+  args:
+    creates: /etc/logrotate.d/awslogs
+  when: result is succeeded
+  notify:
+    - restart awslogs
+
+- name: install redhat specifics
+  include: "redhat.yml"
+  notify:
+    - restart awslogs

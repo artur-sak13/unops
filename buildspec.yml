@@ -21,6 +21,7 @@ phases:
       - make ami | tee build.log
   post_build:
     commands:
+      - grep -Po '"Name"\:\ \K"[^"]*"' build.log | head -1
       - egrep "${AWS_REGION}\:\sami\-" build.log | cut -d' ' -f2 > ami_id.txt
       - test -s ami_id.txt || exit 1
       - sed -i.bak "s/<<AMI-ID>>/$(cat ami_id.txt)/g" unops_build_event.json

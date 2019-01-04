@@ -5,3 +5,5 @@ __pycache__
 terraform/.terraform
 *.tfvars
 *.retry
+*.flatpakrepo
+*.log

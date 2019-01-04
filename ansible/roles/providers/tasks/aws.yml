@@ -1,9 +1,46 @@
 ---
 - name: install aws clients
   pip:
-    name: "{{ item }}"
-  loop:
-    - https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
-    - awscli
+    name: "awscli"
+    state: "present"
   register: result
   until: result is succeeded
+
+- name: create /var/awslogs/etc
+  file:
+    path: /var/awslogs/etc
+    state: directory
+    mode: 0755
+
+- name: create /etc/awslogs
+  file:
+    path: /etc/awslogs
+    state: directory
+    mode: 0755
+
+- name: make /var/awslogs/state/ directory
+  file:
+    path: /var/awslogs/state/
+    state: directory
+    mode: 0755
+
+- name: set region for cloudwatch endpoint
+  template:
+    src: etc/aws.conf.j2
+    dest: /var/awslogs/etc/aws.conf
+    owner: root
+    group: root
+    mode: 0600
+  notify:
+    - restart awslogs
+
+- name: configure aws cloudwatch log agent logging
+  template:
+    src: etc/awslogs/awslogs.logging.conf.j2
+    dest: /etc/awslogs/awslogs.logging.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart awslogs
+  when: cwlogs_aws_loglevel is defined

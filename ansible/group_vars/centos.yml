@@ -1,4 +1,24 @@
 ---
+# common_upgrade_base:
+common_rpms:
+  - yum-utils
+  - python2-pip
+  - python-requests
+  - ebtables
+  - socat
+  - ntp
+  - jq
+  - nfs-utils
+  - cloud-utils
+  - bind-utils
+  - git
+  - htop
+  - curl
+  - tree
+common_extra_rpms: []
+
+docker_logging_max_size: 100m
+
 # users:
 #   - username: jkowal
 #     group: users
@@ -40,4 +60,14 @@ users_groups: []
 # default permissions on user's home directory
 users_home_mode: "0755"
 
+xrdp_desktop: "kde"
+xrdp_install_gui: true
 xrdp_users: []
+
+cwlogs_logs:
+  - file: /var/log/messages
+    group_name: "system_logs"
+cwlogs_extra_logs: {}
+cwlogs_stream_name: "{instance_id}"
+cwlogs_aws_region: us-east-1
+cwlogs_aws_loglevel: info

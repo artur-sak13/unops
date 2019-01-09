@@ -8,30 +8,38 @@ testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
 
 def test_epel_release(package):
     epel = package('epel-release')
-    assert epel.is_installed
+    if not epel.is_installed:
+        raise AssertionError()
 
 
 def test_xrdp_package(package):
     xrdp = package('xrdp')
-    assert xrdp.is_installed
+    if not xrdp.is_installed:
+        raise AssertionError()
 
 
 def test_tigervnc_package(package):
     tiger = package('tigervnc-server')
-    assert tiger.is_installed
+    if not tiger.is_installed:
+        raise AssertionError()
 
 
 def test_xrdp_running_and_enabled(service, systeminfo):
     xrdp = service('xrdp')
-    assert xrdp.is_enabled
-    assert xrdp.is_running
+    if not xrdp.is_enabled:
+        raise AssertionError()
+
+    if not xrdp.is_running:
+        raise AssertionError()
 
 
 def test_xrdp_listening_tcp(host):
     socket = host.socket('tcp://0.0.0.0:3389')
-    assert socket.is_listening
+    if not socket.is_listening:
+        raise AssertionError()
 
 
 def test_sesman_listening_tcp(host):
     socket = host.socket('tcp://127.0.0.1:3350')
-    assert socket.is_listening
+    if not socket.is_listening:
+        raise AssertionError()

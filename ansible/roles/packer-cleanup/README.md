@@ -3,7 +3,6 @@ packer-cleanup
 
 Ansible role to cleanup packer build artifacts
 
-
 Example Playbook
 ----------------
 

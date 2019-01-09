@@ -7,10 +7,17 @@ testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
 
 
 def test_groups(host):
-    assert host.group('test_one').exists
+    if not host.group('test_one').exists:
+        raise AssertionError()
 
-    assert host.group('test_two').exists
-    assert host.group('test_two').gid < 1000
+    if not host.group('test_two').exists:
+        raise AssertionError()
 
-    assert host.group('test_three').exists
-    assert host.group('test_three').gid == 3333
+    if not host.group('test_two').gid < 1000:
+        raise AssertionError()
+
+    if not host.group('test_three').exists:
+        raise AssertionError()
+
+    if not host.group('test_three').gid == 3333:
+        raise AssertionError()

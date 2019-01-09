@@ -7,46 +7,18 @@ PACKER := packer
 ANSIBLE_LINT := ansible-lint
 ANSIBLE_PLAYBOOK := ansible-playbook
 
-PYTHON := python3
-
-ACCOUNT_ID := ${ACCOUNT_ID}
 AWS_REGION := ${AWS_REGION}
-AWS_ACCESS_KEY_ID := ${AWS_ACCESS_KEY_ID}
-AWS_SECRET_ACCESS_KEY := ${AWS_SECRET_ACCESS_KEY}
-BUCKET := ${BUCKET}
-BUILD_BUCKET := ${BUILD_BUCKET}
 VPC_ID := ${VPC_ID}
 SUBNET_ID := ${SUBNET_ID}
-GITHUB_TOKEN := ${GITHUB_TOKEN}
 
 IP := $(shell dig +short myip.opendns.com @resolver1.opendns.com)
 AMI_USERS := $(shell aws organizations list-accounts | jq -r '[.Accounts[].Id | tonumber] | @csv')
-
-REPO_OWNER := $(shell git config --get user.name 2>/dev/null)
-REPO := $(shell git rev-parse --show-toplevel 2>/dev/null | xargs basename 2>/dev/null)
-BRANCH := $(shell git name-rev --name-only --no-undefined --always HEAD 2>/dev/null)
-
-
-TERRAFORM_DIR = $(CURDIR)/terraform
 
 PACKER_FLAGS = -var "temp_cidr=$(IP)/32" \
 				-var "vpc_id=$(VPC_ID)" \
 				-var "subnet_id=$(SUBNET_ID)" \
 				-var "ami_users=$(AMI_USERS)" \
 				-color=false
-
-TERRAFORM_FLAGS = -var "region=$(AWS_REGION)" \
-				  -var "access_key=$(AWS_ACCESS_KEY_ID)" \
-				  -var "secret_key=$(AWS_SECRET_ACCESS_KEY)" \
-				  -var "subnet_id="$(SUBNET_ID) \
-				  -var "bucket_name=$(BUILD_BUCKET)" \
-				  -var "name=$(NAME)" \
-				  -var "vpc_cidr_prefix=$(VPC_CIDR)" \
-				  -var "service_name=$(NAME)" \
-				  -var "repo_owner=$(REPO_OWNER)" \
-				  -var "repo=$(REPO)" \
-					-var "github_token=$(GITHUB_TOKEN)" \
-					-var "sms_number=$(SMS_NUMBER)"
 
 check_defined = \
 		$(strip $(foreach 1,$1, \
@@ -66,39 +38,6 @@ ami: ## Builds the AMI
 			$(PACKER_FLAGS) \
 			$(MANIFEST)
 
-.PHONY: infra-init
-infra-init:
-		@:$(call check_defined, AWS_REGION, Amazon Region)
-		@:$(call check_defined, AWS_ACCESS_KEY_ID, Amazon Access Key ID)
-		@:$(call check_defined, AWS_SECRET_ACCESS_KEY, Amazon Secret Access Key)
-		@:$(call check_defined, SUBNET_ID, Subnet in which to build the AMI)
-		@:$(call check_defined, BUCKET, S3 bucket name in which to store the Terraform state)
-		@:$(call check_defined, NAME, Name of the build environment)
-		@:$(call check_defined, VPC_CIDR, The IP prefix to the CIDR block assigned to the VPC)
-		@:$(call check_defined, REPO_OWNER, The Github organization or user who owns the repository)
-		@:$(call check_defined, REPO, The Github repo containing the Packer templates used to build the AMI)
-		@:$(call check_defined, GITHUB_TOKEN, Github OAuth Personal Access token)
-		@cd $(TERRAFORM_DIR) && terraform init \
-				-backend-config "bucket=$(BUCKET)" \
-				-backend-config "region=$(AWS_REGION)" \
-				$(TERRAFORM_FLAGS)
-
-.PHONY: infra-plan
-infra-plan: infra-init ## Run terraform plan
-		@cd $(TERRAFORM_DIR) && terraform plan \
-				$(TERRAFORM_FLAGS)
-
-.PHONY: infra-apply
-infra-apply: infra-init ## Run terraform apply
-		@cd $(TERRAFORM_DIR) && terraform apply \
-				$(TERRAFORM_FLAGS) \
-				-auto-approve
-
-.PHONY: infra-destroy
-infra-destroy: infra-init ## Run terraform destroy
-		@cd $(TERRAFORM_DIR) && terraform destroy \
-				$(TERRAFORM_FLAGS)
-
 .PHONY: test
 test: ## Runs the automated tests
 	@echo "+ $@"
@@ -106,11 +45,6 @@ test: ## Runs the automated tests
 	$(ANSIBLE_PLAYBOOK) --syntax-check ${PREFIX}/ansible/playbook.yml
 	$(ANSIBLE_LINT) ${PREFIX}/ansible/playbook.yml -x ANSIBLE0010
 	$(CURDIR)/test.sh
-
-.PHONY: run-lambda
-run-lambda: ## Runs the lambda function locally
-	@echo "+ $@"
-	@$(PYTHON) $(CURDIR)/terraform/modules/lambda/function/notify.py
 
 .PHONY: help
 help:

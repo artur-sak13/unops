@@ -1,7 +1,7 @@
 [
   {
     "Source"    : "com.unops.build",
-    "DetailType": "UnopsBuild",
+    "DetailType": "Unops Build",
     "Detail"    : "{ \"AmiStatus\": \"Created\", \"Name\": \"<<AMI-NAME>>\" }",
     "Resources" : [
       "<<AMI-ID>>"
